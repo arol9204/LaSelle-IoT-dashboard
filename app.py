@@ -7,6 +7,8 @@ from faicons import icon_svg
 import plotly.express as px
 import pandas as pd
 
+from pathlib import Path
+dir = Path(__file__).resolve().parent
 
 from shared import Bins, Parks, BASEMAPS
 #from shinywidgets import output_widget, render_widget
@@ -33,47 +35,73 @@ app_ui = ui.page_sidebar(
         ui.input_selectize("basemap", "Choose a basemap", choices=list(BASEMAPS.keys()), selected="WorldImagery",),
         ui.input_dark_mode(mode="dark"),
     ),
+    
+    ui.accordion(
+        ui.accordion_panel("Last Report:",
+                           # Last reading information boxes
+                            ui.layout_column_wrap(
+                                ui.value_box(
+                                    "Fill level",
+                                    ui.output_text("fill_level"),
+                                    theme="gradient-blue-indigo",
+                                    showcase=icon_svg("trash-can-arrow-up"), # trash-can-arrow-up, trash, dumpster
+                                    height="100px",
+                                ),
+                                ui.value_box(
+                                    "Temperature",
+                                    ui.output_text("temperature"),
+                                    theme="gradient-blue-indigo",
+                                    showcase=icon_svg("temperature-three-quarters"),
+                                    height="100px",
+                                ),
+                                ui.value_box(
+                                    "Humidity",
+                                    ui.output_text("humidity"),
+                                    theme="gradient-blue-indigo",
+                                    showcase=icon_svg("water"),
+                                    height="100px",
+                                ),
+                                fill=False,
+                            ),
+                            ui.accordion(
+                                ui.accordion_panel("+ Show Serial Data", 
+                                                   # Sensor serial data charts
+                                                    ui.layout_column_wrap(
+                                                        ui.card(output_widget('distance_chart')),
+                                                        ui.card(output_widget('temperaturee_chart')),
+                                                        ui.card(output_widget('humidity_chart')),
+                                                    ),
+                                                   ),
+                                        ),
 
-    # Last reading information boxes
-    ui.layout_column_wrap(
-        ui.value_box(
-            "Fill level",
-            ui.output_text("fill_level"),
-            theme="gradient-blue-indigo",
-            showcase=icon_svg("trash-can-arrow-up"),
-            # trash-can-arrow-up
-            # trash
-            # dumpster
         ),
-        ui.value_box(
-            "Temperature",
-            ui.output_text("temperature"),
-            theme="gradient-blue-indigo",
-            showcase=icon_svg("temperature-three-quarters"),
-        ),
-        ui.value_box(
-            "Humidity",
-            ui.output_text("humidity"),
-            theme="gradient-blue-indigo",
-            showcase=icon_svg("water"),
-        ),
-        fill=False,
     ),
+    
 
-    # Sensor serial data charts
-    ui.layout_column_wrap(
-        ui.card(output_widget('distance_chart')),
-        ui.card(output_widget('temperaturee_chart')),
-        ui.card(output_widget('humidity_chart')),
-    ),
+    
 
 
     ui.card(
         ui.page_navbar(
             ui.nav_panel("Map", 
-                         ui.card(
+                         #ui.card(
+                             #ui.layout_column_wrap(
+                             ui.layout_columns(
+                                                    ui.output_image("green_bin", width='5%', height='10%',),
+                                                    "<50%",
+                                                    ui.output_image("yellow_bin", width='10%', height='10%',),
+                                                    "50% - 80%",
+                                                    ui.output_image("red_bin", width='10%', height='10%',),
+                                                    ">80%",
+                             #fill=False,
+                             col_widths={"xs":(1, 2, 1, 2, 1, 2)},
+                             #fillable=False,
+                             ),
+                             
+                                                    
+                              #                     ),
                              output_widget("map")
-                             ) 
+                            # ) 
                         ),
             ui.nav_panel("Table", 
                          ui.card(
@@ -110,6 +138,22 @@ def server(input: Inputs, output: Outputs, session: Session):
     yellow_trash_icon = L.Icon(icon_size = (10, 15), icon_url = ("https://raw.githubusercontent.com/arol9204/LaSelle-IoT-dashboard/main/assets/icons/trash-solid%20(yellow).png"))
     red_trash_icon = L.Icon(icon_size = (10, 15), icon_url = ("https://raw.githubusercontent.com/arol9204/LaSelle-IoT-dashboard/main/assets/icons/trash-solid%20(red).png"))
     
+    # Showing the map bin legend:
+    @render.image
+    def green_bin():
+        img = {"src": str(dir / "assets/icons/trash-solid (green).png"), "width": "20px"}
+        return img
+    @render.image
+    def yellow_bin():
+        img = {"src": str(dir / "assets/icons/trash-solid (yellow).png"), "width": "20px"}
+        return img
+    @render.image
+    def red_bin():
+        img = {"src": str(dir / "assets/icons/trash-solid (red).png"), "width": "20px"}
+        return img
+
+
+
     # Rendering the map chart
     @render_widget
     def map():

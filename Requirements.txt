@@ -1,0 +1,7 @@
+shiny
+shinywidgets
+ipyleaflet
+faicons
+plotly.express
+pandas
+shared
