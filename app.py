@@ -3,6 +3,7 @@ from shinywidgets import reactive_read, render_widget, output_widget, register_w
 
 
 import ipyleaflet as L
+from ipywidgets import HTML
 from faicons import icon_svg
 import plotly.express as px
 import pandas as pd
@@ -62,7 +63,9 @@ df_sorted['fill_level_increase'] = df_sorted['fill_level_increase'].fillna(0)
 # Create the 'collected' variable which means the garbage was collected, it will be 1 if 'fill_level_increase' is less than -50, else 0
 df_sorted['collected'] = (df_sorted['fill_level_increase'] < -50).astype(int)
 
-# Initializing the first 
+# Initializing the first date of reporting as the first date of garbage collected
+df_sorted.loc[df_sorted['date'] == df_sorted.date.min(),'collected'] = 1
+
 
 # Define the function to calculate the last collection date and average fill level increase for a bin
 def get_fill_level_stats(bin_no):
@@ -139,9 +142,9 @@ ui.page_sidebar(
     ),
     ui.card(
                 # Last reading information boxes
-                ui.layout_column_wrap(
+                ui.layout_columns(
                                         ui.value_box(
-                                            "Fill level",
+                                            "Fill level (Rate)",
                                             ui.output_text("fill_level"),
                                             theme="gradient-blue-indigo",
                                             showcase=icon_svg("trash-can-arrow-up"), # trash-can-arrow-up, trash, dumpster
@@ -163,6 +166,8 @@ ui.page_sidebar(
                                         ),
                                         fill=False,
                                         height="150px",
+                                        col_widths=(6, 3, 3),
+                                        
                                     ),
                 ui.accordion(
                             ui.accordion_panel("+ Show Serial Data", 
@@ -238,7 +243,8 @@ def server(input: Inputs, output: Outputs, session: Session):
         m = L.Map(basemap = BASEMAPS[input.basemap()], center = (42.2665, -82.9856), zoom=10, scroll_wheel_zoom=True)
         for i in Bins:
             # Selecting the color of the bin based on the fill level from the last report
-            bin_id = df_sorted[df_sorted.Bin_no == int(i)]
+            bin_no = int(i)
+            bin_id = df_sorted[df_sorted.Bin_no == bin_no]
             last_reading_fill_level = bin_id[bin_id.date == bin_id.date.max()]["fill_level"]
             if last_reading_fill_level.values < 50:
                 point = L.Marker(location=Bins[i], draggable=False, icon = green_trash_icon)
@@ -246,7 +252,24 @@ def server(input: Inputs, output: Outputs, session: Session):
                 point = L.Marker(location=Bins[i], draggable=False, icon = yellow_trash_icon)
             else:
                 point = L.Marker(location=Bins[i], draggable=False, icon = red_trash_icon)
+            #m.add_layer(point)
+            
+            
+            # # Get the last collection date and average fill level increase
+            # last_collection_date, avg_fill_increase = get_fill_level_stats(bin_no)
+
+            
+            # # Create the popup message
+            # message = HTML()
+            # #if last_collection_date:
+            # #     message.value = f"Last collection: {last_collection_date.strftime('%Y-%m-%d')}<br>Avg fill level increase: {avg_fill_increase:.2f}%"
+            # # else:
+            # message.value = "Hello <b>World</b>"
+            # # # Attach the popup to the marker
+            # point.popup = message
+
             m.add_layer(point)
+
         #m.layout.height = "500px"
         return m
 
@@ -309,7 +332,8 @@ def server(input: Inputs, output: Outputs, session: Session):
         if not input.bin():
             return "N/A"  # Return an empty dataframe if no bin is selected
         fill_level = last_reading()["fill_level"].values
-        return f"{fill_level[0]:.2f} %"
+        fill_rate = get_fill_level_stats(int(input.bin()))[1]
+        return f"{fill_level[0]:.2f} % (+{fill_rate:.0f}%/day)"
     
     # Showing the last reading for the temperature
     @render.text
