@@ -50,6 +50,21 @@ You can install the necessary dependencies using the `requirements.txt` file:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Clone the Repository
+```bash
+git clone https://github.com/your-username/laselle-iot-dashboard.git
+cd laselle-iot-dashboard
+```
+
+Run the Dashboard
+To run the dashboard locally:
+```bash
+python app.py
+```
+
+
 
 ## Usage
 
@@ -65,9 +80,14 @@ Once you launch the app, you'll be presented with the following features:
 4. **KPIs**: View real-time metrics for the selected bin (fill level, temperature, and humidity).
 5. **Data Trends**: Check historical data trends for the bin’s fill levels, temperature, and humidity.
 
-Screenshots
+## Screenshots
+
 Interactive Map with Bin Fill Levels
 
-Dynamic KPI Dashboard
+![Interactive Map with Bin Fill Levels](assets/UI/UI-Interactive-Map.png)
 
 Historical Data Visualization
+
+![Historical Data Visualization](assets/UI/UI-Fill-level-history.png)
+![Historical Data Visualization1](assets/UI/UI-Temperature-Humidity.png)
+
