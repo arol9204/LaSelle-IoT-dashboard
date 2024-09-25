@@ -18,7 +18,7 @@ The system focuses on tracking fill levels, temperature, and humidity in smart t
 3. [Usage](#usage)
 4. [Screenshots](#screenshots)
 5. [Data](#data)
-6. [License](#license)
+
 
 ---
 
@@ -90,4 +90,15 @@ Historical Data Visualization
 
 ![Historical Data Visualization](assets/UI/UI-Fill-level-history.png)
 ![Historical Data Visualization1](assets/UI/UI-Temperature-Humidity.png)
+
+## Data
+
+The project is powered by IoT data stored in a Google Spreadsheet. It includes:
+
+- **Date and Time**: Timestamp of the data reading.
+- **Bin Information**: Park name, bin number, and sensor readings (distance from the sensor to garbage, temperature, humidity).
+- **Fill Level**: Calculated from the distance measured by an ultrasonic sensor.
+- **Temperature and Humidity**: Environmental conditions affecting the bin's surroundings.
+
+Data is processed and aggregated for each bin, calculating daily medians for each measure and identifying collection events.
 
