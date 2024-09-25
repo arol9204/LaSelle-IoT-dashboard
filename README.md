@@ -54,7 +54,7 @@ pip install -r requirements.txt
 
 Clone the Repository
 ```bash
-git clone https://github.com/your-username/laselle-iot-dashboard.git
+git clone https://github.com/arol9204/laselle-iot-dashboard.git
 cd laselle-iot-dashboard
 ```
 
