@@ -172,10 +172,12 @@ ui.page_sidebar(
                 ui.accordion(
                             ui.accordion_panel("+ Show Serial Data", 
                                                # Sensor serial data charts
-                                               ui.layout_column_wrap(
+                                               ui.layout_columns(
                                                                         output_widget('distance_chart'),
                                                                         output_widget('temperaturee_chart'),
                                                                         output_widget('humidity_chart'),
+                                                                        col_widths=(12, 6, 6),
+
                                                                     ),
                                                                     
                                                ),
@@ -333,7 +335,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             return "N/A"  # Return an empty dataframe if no bin is selected
         fill_level = last_reading()["fill_level"].values
         fill_rate = get_fill_level_stats(int(input.bin()))[1]
-        return f"{fill_level[0]:.2f} % (+{fill_rate:.0f}%/day)"
+        return f"{fill_level[0]:.0f}%   (+{fill_rate:.0f}%/day)"
     
     # Showing the last reading for the temperature
     @render.text
@@ -341,7 +343,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         if not input.bin():
             return "N/A"  # Return an empty dataframe if no bin is selected
         close_temperature = last_reading()["Temperature"].values
-        return f"{close_temperature[0]:.2f} °C"
+        return f"{close_temperature[0]:.0f} °C"
     
     # Showing the last reading for the Humidity
     @render.text
@@ -357,21 +359,63 @@ def server(input: Inputs, output: Outputs, session: Session):
     def distance_chart():
         if input.bin():
             bin_distance = bin_number()[['date', 'fill_level']]
-            return px.line(bin_distance, x='date', y="fill_level")
+            fig = px.line(bin_distance, x='date', y="fill_level", title="Fill Level", markers=True)
+            fig.update_layout(  yaxis_range=[0, 100], 
+                                # Format y-axis ticks to show percentages
+                                yaxis = dict(
+                                            tickvals=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+                                            ticktext=['0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'],
+                                            title="",
+                                            showgrid=False,
+                                          ),
+                                xaxis=dict(showgrid=False),
+                                
+                                # Title alignment
+                                title_x=0.5,
+                            )
+            #fig.update_layout(plot_bgcolor="red")
+            # Set background colors for different y-axis ranges
+            fig.update_layout(shapes=background_shapes)
+            
+            return fig
     
     @render_plotly
     @reactive.event(input.bin)
     def temperaturee_chart():
         if input.bin():
             bin_distance = bin_number()[['date', 'Temperature']]
-            return px.line(bin_distance, x='date', y="Temperature")
+            fig = px.line(bin_distance, x='date', y="Temperature", title="Temperature")
+            fig.update_layout(yaxis_range=[-20, 50], 
+                              # Format y-axis ticks to show percentages
+                              yaxis = dict(
+                                            tickvals=[-10, 0, 10, 20, 30, 40, 50],
+                                            ticktext=['-10°C', '0°C', '10°C', '20°C', '30°C', '40°C', '50°C'],
+                                            title=""
+                                            ),
+                              # Title alignment
+                              title_x=0.5,
+                                            
+                             )
+            return fig
     
     @render_plotly
     @reactive.event(input.bin)
     def humidity_chart():
         if input.bin():
             bin_distance = bin_number()[['date', 'Humidity']]
-            return px.line(bin_distance, x='date', y="Humidity")
+            fig = px.line(bin_distance, x='date', y="Humidity", title="Humidity")
+            fig.update_layout(yaxis_range=[30, 80], 
+                              # Format y-axis ticks to show percentages
+                              yaxis = dict(
+                                            tickvals=[30, 40, 50, 60, 70, 80],
+                                            ticktext=['30%', '40%', '50%', '60%', '70%', '80%'],
+                                            title=""
+                                            ),
+                            # Title alignment
+                            title_x=0.5,
+                              
+                              )
+            return fig
 
 app = App(app_ui, server)
 
@@ -386,6 +430,44 @@ app = App(app_ui, server)
 #         if isinstance(layer, L.TileLayer):
 #             map.remove_layer(layer)
 #     map.add_layer(L.basemap_to_tiles(BASEMAPS[input.basemap()]))
+
+# Fill level chart plot background setting
+background_shapes=[
+        # Rectangle from 0 to 50 (green background)
+        dict(
+             type="rect",
+             xref="paper", yref="y",
+             x0=0, x1=1,  # x0 and x1 in 'paper' coordinates (whole plot width)
+             y0=0, y1=50,  # y0 and y1 define the y-axis range
+             fillcolor="lightgreen",
+             opacity=0.3,
+             layer="below",  # Set the layer below the chart lines
+             line_width=0,
+         ),
+         # Rectangle from 50 to 80 (yellow background)
+         dict(
+             type="rect",
+             xref="paper", yref="y",
+             x0=0, x1=1,
+             y0=50, y1=80,
+             fillcolor="yellow",
+             opacity=0.3,
+             layer="below",
+             line_width=0,
+         ),
+         # Rectangle from 80 to 100 (red background)
+         dict(
+             type="rect",
+             xref="paper", yref="y",
+             x0=0, x1=1,
+             y0=80, y1=100,
+             fillcolor="red",
+             opacity=0.3,
+             layer="below",
+             line_width=0,
+         )
+     ]
+
 
 
 
